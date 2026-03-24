@@ -49,3 +49,16 @@ def getBiggerThan20(x):
 itemL = filter(lambda x: x > 20, lst)
 for item in itemL:
     print(item)
+
+class Person:
+    def __init__(self):
+        self.name = "default name"
+        self.age = 40
+    def print(self):
+        print("My name is {0} and I am {1} years old.".format(self.name, self.age))
+
+p1 = Person()
+p2 = Person()
+p1.name = "Alice" 
+p1.print()
+p2.print()
