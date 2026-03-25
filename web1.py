@@ -17,3 +17,21 @@ print(soup.prettify())
 for tag in soup.find_all("p"):
     title = tag.text.strip()
     print(title)
+
+# 문자열 처리
+strA = "<<< python >>>"
+result = strA.strip("<> ")
+print(result)
+strB = strA.replace("python", "javascript")
+print(strB)
+result = "spam ham egg banana".split()
+print(result)
+print(":) ".join(result))
+
+# 정규표현식: 특정한 패턴(규칙) 문자열
+import re
+
+result = re.search("\d{4}", "올해는 2026년입니다.")
+print(result.group())
+result = re.search("apple", "this is apple.")
+print(result.group())
