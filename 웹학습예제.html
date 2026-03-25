@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML5, CSS3, JavaScript 학습 예제</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #f5f5f5;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #ddd;
+        }
+
+        nav button {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        nav button:hover {
+            background: #e0e0e0;
+        }
+
+        nav button.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        main {
+            padding: 40px;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        /* HTML5 섹션 */
+        .html5-demo {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        article {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        /* CSS3 섹션 */
+        .box-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .box {
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .box-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .box-2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .box-3 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .box-4 {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .box:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .box:active {
+            transform: translateY(-2px) scale(1);
+        }
+
+        /* JavaScript 섹션 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result-box {
+            background: #e8f4f8;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .result-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            background: white;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .todo-item.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+            border-left-color: #ccc;
+        }
+
+        .delete-btn {
+            background: #f5576c;
+            padding: 6px 12px;
+            font-size: 0.9em;
+            margin: 0;
+        }
+
+        .complete-btn {
+            background: #43e97b;
+            padding: 6px 12px;
+            font-size: 0.9em;
+            margin: 0 5px 0 0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        footer {
+            background: #f5f5f5;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            border-top: 1px solid #ddd;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #43e97b;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 웹 기술 학습 가이드</h1>
+            <p>HTML5, CSS3, JavaScript 기초 학습</p>
+        </header>
+
+        <nav>
+            <button class="tab-btn active" data-tab="html">HTML5</button>
+            <button class="tab-btn" data-tab="css">CSS3</button>
+            <button class="tab-btn" data-tab="javascript">JavaScript</button>
+            <button class="tab-btn" data-tab="practice">실습</button>
+        </nav>
+
+        <main>
+            <!-- HTML5 섹션 -->
+            <section id="html" class="section active">
+                <h2>📄 HTML5 기초</h2>
+                
+                <p>HTML5는 웹페이지의 구조를 정의하는 마크업 언어입니다.</p>
+
+                <h3>주요 특징</h3>
+                <ul class="feature-list">
+                    <li>시맨틱 요소 (Semantic Elements) 지원</li>
+                    <li>멀티미디어 콘텐츠 네이티브 지원</li>
+                    <li>향상된 폼 요소</li>
+                    <li>Canvas와 SVG 지원</li>
+                    <li>로컬 스토리지 지원</li>
+                </ul>
+
+                <h3>시맨틱 요소 예제</h3>
+                <div class="html5-demo">
+                    <header style="background: #667eea; color: white; padding: 15px; border-radius: 5px; margin-bottom: 10px;">
+                        &lt;header&gt; - 페이지 또는 섹션의 헤더
+                    </header>
+                    
+                    <article style="margin: 10px 0;">
+                        <h4>&lt;article&gt; - 독립적인 콘텐츠</h4>
+                        <p>이것은 기사, 블로그 게시물 등의 콘텐츠를 나타냅니다.</p>
+                    </article>
+
+                    <article>
+                        <h4>&lt;section&gt; - 주제별 콘텐츠 그룹</h4>
+                        <p>관련된 콘텐츠를 논리적으로 그룹화합니다.</p>
+                    </article>
+
+                    <footer style="background: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                        &lt;footer&gt; - 페이지 또는 섹션의 푸터
+                    </footer>
+                </div>
+
+                <h3>기본 HTML5 구조</h3>
+                <div class="code-block">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ko"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;페이지 제목&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- 웹페이지 콘텐츠 --&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+                </div>
+            </section>
+
+            <!-- CSS3 섹션 -->
+            <section id="css" class="section">
+                <h2>🎨 CSS3 기초</h2>
+                
+                <p>CSS3는 HTML 요소들의 스타일과 레이아웃을 정의합니다.</p>
+
+                <h3>주요 특징</h3>
+                <ul class="feature-list">
+                    <li>Flexbox와 Grid 레이아웃</li>
+                    <li>애니메이션과 트랜지션</li>
+                    <li>그래디언트 배경</li>
+                    <li>반응형 디자인 (Media Queries)</li>
+                    <li>변환 (Transform) 효과</li>
+                </ul>
+
+                <h3>인터랙티브 박스 데모 (마우스를 올려보세요)</h3>
+                <div class="box-demo">
+                    <div class="box box-1">그래디언트 1</div>
+                    <div class="box box-2">그래디언트 2</div>
+                    <div class="box box-3">그래디언트 3</div>
+                    <div class="box box-4">그래디언트 4</div>
+                </div>
+
+                <h3>Flexbox 레이아웃 예제</h3>
+                <p><code>display: flex</code>를 사용하면 요소들을 유연하게 배열할 수 있습니다.</p>
+                <div class="code-block">
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+                </div>
+
+                <h3>Grid 레이아웃 예제</h3>
+                <p><code>display: grid</code>를 사용하면 2차원 레이아웃을 만들 수 있습니다.</p>
+                <div class="code-block">
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+                </div>
+
+                <h3>애니메이션 예제</h3>
+                <div class="code-block">
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.element {
+    animation: slideIn 0.5s ease;
+}
+                </div>
+            </section>
+
+            <!-- JavaScript 섹션 -->
+            <section id="javascript" class="section">
+                <h2>⚙️ JavaScript 기초</h2>
+                
+                <p>JavaScript는 웹페이지의 상호작용을 담당하는 프로그래밍 언어입니다.</p>
+
+                <h3>주요 특징</h3>
+                <ul class="feature-list">
+                    <li>DOM 조작</li>
+                    <li>이벤트 처리</li>
+                    <li>비동기 처리 (Promise, async/await)</li>
+                    <li>배열과 객체 메서드</li>
+                    <li>로컬 스토리지 활용</li>
+                </ul>
+
+                <h3>DOM (Document Object Model)</h3>
+                <p>DOM은 HTML 문서를 프로그래밍 방식으로 조작할 수 있게 해줍니다.</p>
+                <div class="code-block">
+// 요소 선택
+const element = document.getElementById('myId');
+const elements = document.querySelectorAll('.myClass');
+
+// 요소 수정
+element.textContent = '새로운 텍스트';
+element.classList.add('active');
+
+// 이벤트 리스너 추가
+element.addEventListener('click', function() {
+    console.log('클릭됨!');
+});
+                </div>
+
+                <h3>변수와 데이터 타입</h3>
+                <div class="code-block">
+// 변수 선언
+const name = '홍길동';      // 상수
+let age = 25;               // 변수
+var city = '서울';          // 전역 변수 (권장하지 않음)
+
+// 데이터 타입
+const number = 42;          // 숫자
+const text = '문자열';      // 문자열
+const bool = true;          // 불린
+const arr = [1, 2, 3];     // 배열
+const obj = {name, age};    // 객체
+                </div>
+
+                <h3>함수 정의</h3>
+                <div class="code-block">
+// 일반 함수
+function add(a, b) {
+    return a + b;
+}
+
+// 화살표 함수
+const multiply = (a, b) => a * b;
+
+// 함수 호출
+console.log(add(5, 3));      // 8
+console.log(multiply(5, 3)); // 15
+                </div>
+            </section>
+
+            <!-- 실습 섹션 -->
+            <section id="practice" class="section">
+                <h2>🚀 실습 프로젝트</h2>
+
+                <h3>1. 간단한 계산기</h3>
+                <div class="form-group">
+                    <label for="num1">첫 번째 숫자:</label>
+                    <input type="number" id="num1" placeholder="숫자를 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="num2">두 번째 숫자:</label>
+                    <input type="number" id="num2" placeholder="숫자를 입력하세요">
+                </div>
+                <button onclick="calculate()">계산하기</button>
+                <div id="calcResult" class="result-box">
+                    <h4>계산 결과</h4>
+                    <div id="calcContent"></div>
+                </div>
+
+                <h3 style="margin-top: 40px;">2. Todo 목록</h3>
+                <div class="form-group">
+                    <label for="todoInput">할 일 입력:</label>
+                    <input type="text" id="todoInput" placeholder="할 일을 입력하세요" onkeypress="if(event.key === 'Enter') addTodo()">
+                </div>
+                <button onclick="addTodo()">추가하기</button>
+                <ul id="todoList" class="todo-list"></ul>
+                
+                <div id="todoStats" class="stats" style="display: none;">
+                    <div class="stat-card">
+                        <h4 id="totalTodos">0</h4>
+                        <p>전체 항목</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4 id="completedTodos">0</h4>
+                        <p>완료된 항목</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4 id="remainingTodos">0</h4>
+                        <p>남은 항목</p>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 40px;">3. 텍스트 분석 도구</h3>
+                <div class="form-group">
+                    <label for="textInput">텍스트를 입력하세요:</label>
+                    <textarea id="textInput" rows="5" placeholder="분석할 텍스트를 입력하세요" oninput="analyzeText()"></textarea>
+                </div>
+                <div id="textResult" class="result-box">
+                    <h4>분석 결과</h4>
+                    <div id="textContent"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>💡 팁: 개발자 도구 (F12)를 열어서 콘솔과 요소를 확인해보세요!</p>
+            <p>&copy; 2024 웹 기술 학습 가이드</p>
+        </footer>
+    </div>
+
+    <script>
+        // 탭 전환 기능
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                
+                // 모든 섹션 숨기기
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // 모든 버튼 비활성화
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // 선택된 섹션과 버튼 활성화
+                document.getElementById(tabName).classList.add('active');
+                this.classList.add('active');
+            });
+        });
+
+        // 계산기 함수
+        function calculate() {
+            const num1 = parseFloat(document.getElementById('num1').value);
+            const num2 = parseFloat(document.getElementById('num2').value);
+            
+            if (isNaN(num1) || isNaN(num2)) {
+                alert('올바른 숫자를 입력하세요');
+                return;
+            }
+            
+            const results = `
+                <p><strong>덧셈:</strong> ${num1} + ${num2} = ${num1 + num2}</p>
+                <p><strong>뺄셈:</strong> ${num1} - ${num2} = ${num1 - num2}</p>
+                <p><strong>곱셈:</strong> ${num1} × ${num2} = ${num1 * num2}</p>
+                <p><strong>나눗셈:</strong> ${num1} ÷ ${num2} = ${(num1 / num2).toFixed(2)}</p>
+            `;
+            
+            document.getElementById('calcContent').innerHTML = results;
+            document.getElementById('calcResult').classList.add('show');
+        }
+
+        // Todo 관련 변수 및 함수
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+            
+            if (text === '') {
+                alert('할 일을 입력하세요');
+                return;
+            }
+            
+            const todo = {
+                id: Date.now(),
+                text: text,
+                completed: false
+            };
+            
+            todos.push(todo);
+            saveTodos();
+            renderTodos();
+            input.value = '';
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            saveTodos();
+            renderTodos();
+        }
+
+        function completeTodo(id) {
+            const todo = todos.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                saveTodos();
+                renderTodos();
+            }
+        }
+
+        function renderTodos() {
+            const todoList = document.getElementById('todoList');
+            todoList.innerHTML = '';
+            
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                li.innerHTML = `
+                    <span>${todo.text}</span>
+                    <div>
+                        <button class="complete-btn" onclick="completeTodo(${todo.id})">
+                            ${todo.completed ? '되돌리기' : '완료'}
+                        </button>
+                        <button class="delete-btn" onclick="deleteTodo(${todo.id})">삭제</button>
+                    </div>
+                `;
+                todoList.appendChild(li);
+            });
+            
+            updateTodoStats();
+        }
+
+        function updateTodoStats() {
+            const total = todos.length;
+            const completed = todos.filter(t => t.completed).length;
+            const remaining = total - completed;
+            
+            document.getElementById('totalTodos').textContent = total;
+            document.getElementById('completedTodos').textContent = completed;
+            document.getElementById('remainingTodos').textContent = remaining;
+            
+            const statsDiv = document.getElementById('todoStats');
+            if (total > 0) {
+                statsDiv.style.display = 'grid';
+            } else {
+                statsDiv.style.display = 'none';
+            }
+        }
+
+        // 텍스트 분석 함수
+        function analyzeText() {
+            const text = document.getElementById('textInput').value;
+            
+            if (text === '') {
+                document.getElementById('textResult').classList.remove('show');
+                return;
+            }
+            
+            const charCount = text.length;
+            const spaceCount = text.split(' ').length - 1;
+            const wordCount = text.trim().split(/\s+/).length;
+            const lineCount = text.split('\n').length;
+            
+            const analysis = `
+                <p><strong>전체 문자 수:</strong> ${charCount}개</p>
+                <p><strong>공백 제외 문자 수:</strong> ${charCount - spaceCount}개</p>
+                <p><strong>단어 수:</strong> ${wordCount}개</p>
+                <p><strong>줄 수:</strong> ${lineCount}개</p>
+                <p><strong>평균 단어 길이:</strong> ${(charCount / wordCount).toFixed(2)}글자</p>
+            `;
+            
+            document.getElementById('textContent').innerHTML = analysis;
+            document.getElementById('textResult').classList.add('show');
+        }
+
+        // 페이지 로드 시 todos 렌더링
+        window.addEventListener('load', function() {
+            renderTodos();
+        });
+
+        // 콘솔 메시지
+        console.log('%c웹 개발 학습 시작! 🚀', 'font-size: 20px; color: #667eea; font-weight: bold;');
+        console.log('이 콘솔을 활용해서 JavaScript를 배워보세요.');
+        console.log('예: typeof, console.log(), console.table() 등');
+    </script>
+</body>
+</html>
