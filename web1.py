@@ -6,4 +6,6 @@ soup = BeautifulSoup(page, "html.parser")
 print(soup.prettify())
 
 # <p>를 검색
-print(soup.find_all("p"))
+# print(soup.find_all("p"))
+# print(soup.find("p"))
+print(soup.find_all("p", class_="outer-text"))
