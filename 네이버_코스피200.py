@@ -1,109 +1,256 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import re
+import os
 import time
 from datetime import datetime
 
-try:
-    # Selenium 드라이버 설정
-    options = webdriver.ChromeOptions()
-    options.add_argument('--start-maximized')
-    options.add_argument('--disable-blink-features=AutomationControlled')
-    options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
 
-    driver = webdriver.Chrome(options=options)
+def sanitize_filename(name: str) -> str:
+    safe = re.sub(r"[^A-Za-z0-9_.-]", "_", name)
+    return safe[:255]
 
-    # 전체 데이터를 저장할 리스트
+
+def fetch_kospi200_data(max_pages: int = 20, progress_callback=None, page_callback=None) -> pd.DataFrame:
+    if not isinstance(max_pages, int) or max_pages < 1 or max_pages > 100:
+        raise ValueError('max_pages must be integer between 1 and 100')
+
     all_data = []
 
-    # 1부터 20페이지까지 크롤링
-    for page in range(1, 21):
-        print(f"페이지 {page}/20 크롤링 중...")
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
 
-        # 페이지별 URL 생성
+    for page in range(1, max_pages + 1):
+        if callable(progress_callback):
+            progress_callback(page, max_pages)
+
+        print(f"페이지 {page}/{max_pages} 크롤링 중...")
         url = f"https://finance.naver.com/sise/entryJongmok.naver?type=KPI200&page={page}"
-        driver.get(url)
 
-        # 테이블이 로드될 때까지 대기
-        wait = WebDriverWait(driver, 10)
-        wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "table.type_1 tr")))
+        try:
+            response = requests.get(url, headers=headers, timeout=15)
+            response.raise_for_status()
+        except Exception as exc:
+            print(f"페이지 {page} 요청 실패: {exc}")
+            time.sleep(1)
+            continue
 
-        time.sleep(1)  # 페이지 로드 대기
-
-        # HTML 파싱
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-
-        # 편입종목상위 테이블 찾기
+        soup = BeautifulSoup(response.text, 'html.parser')
         table = soup.find('table', {'class': 'type_1'})
+        if not table:
+            continue
 
-        if table:
-            # 테이블의 모든 행 추출
-            rows = table.find_all('tr')
+        page_data = []
+        rows = table.find_all('tr')
+        for row in rows[2:]:
+            cols = row.find_all('td')
+            if len(cols) < 7:
+                continue
 
-            # 해더 행 이후부터 데이터 추출 (tr[0]은 th, tr[1]은 빈 행)
-            for row in rows[2:]:
-                cols = row.find_all('td')
+            stock_link = cols[0].find('a')
+            stock_name = stock_link.text.strip() if stock_link else cols[0].text.strip()
+            if not stock_name or '종목별' in stock_name:
+                continue
 
-                if len(cols) >= 7:  # 필요한 열이 모두 있는지 확인
-                    # 종목명은 td 내의 a 태그에서 추출
-                    stock_link = cols[0].find('a')
-                    stock_name = stock_link.text.strip() if stock_link else cols[0].text.strip()
+            def clean_text(text: str) -> str:
+                text = text.strip()
+                return ' '.join(text.split())
 
-                    # 전일비 정리 (불필요한 줄바꿈 및 공백 제거)
-                    change_val = cols[2].text.strip()
-                    change_val = ' '.join(change_val.split())  # 여러 줄의 공백을 하나로 정리
+            col_data = {
+                '종목명': stock_name,
+                '현재가': clean_text(cols[1].text),
+                '전일비': clean_text(cols[2].text),
+                '등락률': clean_text(cols[3].text),
+                '거래량': clean_text(cols[4].text),
+                '거래대금(백만)': clean_text(cols[5].text),
+                '시가총액(억)': clean_text(cols[6].text)
+            }
+            all_data.append(col_data)
+            page_data.append(col_data)
 
-                    # 등락률 정리
-                    change_rate = cols[3].text.strip()
-                    change_rate = ' '.join(change_rate.split())
+        if callable(page_callback) and page_data:
+            page_callback(page, max_pages, page_data)
 
-                    col_data = {
-                        '종목명': stock_name,
-                        '현재가': cols[1].text.strip(),
-                        '전일비': change_val,
-                        '등락률': change_rate,
-                        '거래량': cols[4].text.strip(),
-                        '거래대금(백만)': cols[5].text.strip(),
-                        '시가총액(억)': cols[6].text.strip()
-                    }
+        time.sleep(0.5)
 
-                    # 빈 행이나 구분선 제외
-                    if stock_name and '종목별' not in stock_name:
-                        all_data.append(col_data)
+    if not all_data:
+        return pd.DataFrame()
 
-    # 드라이버 종료
-    driver.quit()
-
-    # 데이터프레임으로 변환
     df = pd.DataFrame(all_data)
-
-    # 전체 순위 재설정
     df['순위'] = range(1, len(df) + 1)
-
-    # 컬럼 순서 재배열
     df = df[['순위', '종목명', '현재가', '전일비', '등락률', '거래량', '거래대금(백만)', '시가총액(억)']]
+    return df
 
-    # 결과 출력
-    print("=" * 120)
-    print("코스피200 편입종목상위 데이터 (전체 20페이지)")
-    print("=" * 120)
-    print(df.to_string(index=False))
-    print(f"\n총 {len(df)}개의 데이터가 수집되었습니다.")
 
-    # 현재 날짜 가져오기
-    today = datetime.now().strftime('%Y%m%d')
-    
-    # 엑셀 파일로 저장
-    excel_filename = f'kospi200_all_stocks_{today}.xlsx'
-    df.to_excel(excel_filename, index=False, engine='openpyxl')
-    print(f"\n엑셀 파일로 저장되었습니다: {excel_filename}")
+def save_dataframe_to_excel(df: pd.DataFrame, prefix: str = 'kospi200') -> str:
+    if df.empty:
+        raise ValueError('저장할 데이터가 없습니다.')
 
-except Exception as e:
-    print(f"오류 발생: {e}")
-    try:
-        driver.quit()
-    except:
-        pass
+    today_str = datetime.now().strftime('%Y%m%d')
+
+    if '날짜' not in df.columns:
+        df = df.copy()
+        df['날짜'] = today_str
+
+    filename = f"{prefix}[{today_str}].xlsx"
+    filename = sanitize_filename(filename)
+
+    df.to_excel(filename, index=False, engine='openpyxl')
+    abspath = os.path.abspath(filename)
+    return abspath
+
+
+from PyQt6.QtWidgets import (
+    QApplication, QWidget, QLabel, QLineEdit, QPushButton,
+    QHBoxLayout, QVBoxLayout, QTableWidget, QTableWidgetItem,
+    QTextEdit, QMessageBox, QHeaderView
+)
+from PyQt6.QtCore import QTimer
+import threading
+
+
+class Kospi200Gui(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('네이버 코스피200 크롤러 GUI')
+        self.setGeometry(150, 150, 1000, 700)
+
+        self.df = pd.DataFrame()
+        self.init_ui()
+
+    def init_ui(self):
+        label_pages = QLabel('크롤링 페이지 수 (1-100)')
+        self.input_pages = QLineEdit('20')
+        self.input_pages.setFixedWidth(80)
+
+        self.btn_fetch = QPushButton('데이터 수집')
+        self.btn_fetch.clicked.connect(self.start_fetch)
+
+        self.btn_save = QPushButton('엑셀 저장')
+        self.btn_save.clicked.connect(self.save_data)
+        self.btn_save.setEnabled(False)
+
+        hbox_controls = QHBoxLayout()
+        hbox_controls.addWidget(label_pages)
+        hbox_controls.addWidget(self.input_pages)
+        hbox_controls.addWidget(self.btn_fetch)
+        hbox_controls.addWidget(self.btn_save)
+
+        self.table = QTableWidget(0, 8)
+        self.table.setHorizontalHeaderLabels(['순위', '종목명', '현재가', '전일비', '등락률', '거래량', '거래대금(백만)', '시가총액(억)'])
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        self.log = QTextEdit()
+        self.log.setReadOnly(True)
+
+        layout = QVBoxLayout()
+        layout.addLayout(hbox_controls)
+        layout.addWidget(self.table)
+        layout.addWidget(QLabel('로그'))
+        layout.addWidget(self.log)
+
+        self.setLayout(layout)
+
+    def append_log(self, text: str) -> None:
+        self.log.append(f"[{datetime.now().strftime('%H:%M:%S')}] {text}")
+
+    def start_fetch(self) -> None:
+        try:
+            max_pages = int(self.input_pages.text().strip())
+        except ValueError:
+            QMessageBox.warning(self, '입력 오류', '페이지 수는 정수여야 합니다.')
+            return
+
+        if max_pages < 1 or max_pages > 100:
+            QMessageBox.warning(self, '입력 오류', '페이지 수는 1에서 100 사이여야 합니다.')
+            return
+
+        self.btn_fetch.setEnabled(False)
+        self.btn_save.setEnabled(False)
+        self.append_log(f'데이터 수집 시작 (페이지 수: {max_pages})')
+
+        thread = threading.Thread(target=self.fetch_data_worker, args=(max_pages,), daemon=True)
+        thread.start()
+
+    def fetch_data_worker(self, max_pages: int) -> None:
+        try:
+            data = fetch_kospi200_data(
+                max_pages=max_pages,
+                progress_callback=self.report_progress,
+                page_callback=lambda page, max_pages, rows: QTimer.singleShot(0, lambda: self.append_page_data(page, max_pages, rows))
+            )
+            QTimer.singleShot(0, lambda: self.on_fetch_success(data))
+        except Exception as error:
+            QTimer.singleShot(0, lambda: self.on_fetch_error(str(error)))
+
+    def on_fetch_success(self, data: pd.DataFrame) -> None:
+        self.df = data
+        if data.empty:
+            self.append_log('데이터가 없습니다.')
+            QMessageBox.information(self, '완료', '데이터를 가져오지 못했습니다.')
+        else:
+            self.load_table(data)
+            self.btn_save.setEnabled(True)
+            self.append_log(f'데이터 수집 완료: {len(data)}건')
+            QMessageBox.information(self, '완료', f'총 {len(data)}개 항목 수집 완료')
+
+        self.btn_fetch.setEnabled(True)
+
+    def report_progress(self, page: int, max_pages: int) -> None:
+        QTimer.singleShot(0, lambda: self.append_log(f'진행 중: 페이지 {page}/{max_pages}'))
+
+    def append_page_data(self, page: int, max_pages: int, page_data: list) -> None:
+        self.append_log(f'페이지 {page}/{max_pages} 추가 {len(page_data)}개')
+
+        if not page_data:
+            return
+
+        # GUI thread에서 직접 반영
+        df_page = pd.DataFrame(page_data)
+        current_count = len(self.df)
+        if '순위' not in df_page.columns:
+            df_page.insert(0, '순위', range(current_count + 1, current_count + 1 + len(df_page)))
+
+        self.df = pd.concat([self.df, df_page], ignore_index=True)
+        self.load_table(self.df)
+
+    def on_fetch_error(self, message: str) -> None:
+        self.append_log(f'오류 발생: {message}')
+        QMessageBox.critical(self, '오류', message)
+        self.btn_fetch.setEnabled(True)
+
+    def load_table(self, df: pd.DataFrame) -> None:
+        self.table.setRowCount(0)
+        for row_idx, row in df.iterrows():
+            self.table.insertRow(row_idx)
+            self.table.setItem(row_idx, 0, QTableWidgetItem(str(row['순위'])))
+            self.table.setItem(row_idx, 1, QTableWidgetItem(str(row['종목명'])))
+            self.table.setItem(row_idx, 2, QTableWidgetItem(str(row['현재가'])))
+            self.table.setItem(row_idx, 3, QTableWidgetItem(str(row['전일비'])))
+            self.table.setItem(row_idx, 4, QTableWidgetItem(str(row['등락률'])))
+            self.table.setItem(row_idx, 5, QTableWidgetItem(str(row['거래량'])))
+            self.table.setItem(row_idx, 6, QTableWidgetItem(str(row['거래대금(백만)'])))
+            self.table.setItem(row_idx, 7, QTableWidgetItem(str(row['시가총액(억)'])))
+
+    def save_data(self) -> None:
+        if self.df.empty:
+            QMessageBox.warning(self, '저장 오류', '저장할 데이터가 없습니다.')
+            return
+
+        try:
+            path = save_dataframe_to_excel(self.df)
+            self.append_log(f'엑셀 저장 완료: {path}')
+            QMessageBox.information(self, '저장 완료', f'엑셀 파일 저장: {path}')
+        except Exception as ex:
+            self.append_log(f'저장 실패: {ex}')
+            QMessageBox.critical(self, '저장 오류', str(ex))
+
+
+if __name__ == '__main__':
+    app = QApplication([])
+    window = Kospi200Gui()
+    window.show()
+    app.exec()
+
